@@ -13,12 +13,13 @@ class UserModel(AbstractUser):
     USER_STATUS = (
         ('active', 'Active'),
         ('delete', 'Delete'),
+        ('inactive', 'Inactive'),
     )
 
     full_name = models.CharField(max_length=255, blank=True, null=True)
     user_type = models.CharField(max_length=10, choices=USER_TYPES, default='customer')
     user_status = models.CharField(max_length=10, choices=USER_STATUS, default='active')
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True)  
     verification_code = models.CharField(max_length=4, blank=True, null=True)
 
     def __str__(self):
