@@ -15,9 +15,9 @@ class UserModel(AbstractUser):
         ('delete', 'Delete'),
     )
 
+    full_name = models.CharField(max_length=255, blank=True, null=True)
     user_type = models.CharField(max_length=10, choices=USER_TYPES, default='customer')
     user_status = models.CharField(max_length=10, choices=USER_STATUS, default='active')
-    phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)
     email = models.EmailField(unique=True)
     verification_code = models.CharField(max_length=4, blank=True, null=True)
 
