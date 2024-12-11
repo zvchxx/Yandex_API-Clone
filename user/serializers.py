@@ -2,7 +2,6 @@ import random
 import threading
 
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 
 from user.models import UserModel
 from user.utils import send_email_verification
@@ -11,30 +10,11 @@ from django.utils import timezone
 
 from datetime import timedelta
 
-
-class RegisterSerializers(serializers.ModelSerializer):
-    confirm_password = serializers.CharField(write_only=True)
-    first_name = serializers.CharField(write_only=True, max_length=64)
-    last_name = serializers.CharField(write_only=True, max_length=64)
-    phone_number = serializers.CharField(write_only=True, max_length=15)
-    email = serializers.EmailField(max_length=254, validators=[
-        UniqueValidator(queryset=UserModel.objects.all(), message='This email is already registered')
-    ])
-
-
-    class Meta:
-        model = UserModel
-        fields = ['id','first_name', 'last_name', 'username','email', 'phone_number', 'password', 'confirm_password']
-        extra_kwargs = {'password': {'write_only': True}}
-
     
-    def validate(self, attrs):
-        password = attrs.get('password')
-        confirm_password = attrs.get('confirm_password')
-        if password != confirm_password:
-            raise serializers.ValidationError("Passwords do not match.")
-        return attrs
-    
+class LoginSerializers(serializers.Serializer):
+    full_name = serializers.CharField(max_length=255, allow_blank=True)
+    email = serializers.EmailField(max_length=255, required=False)
+
 
     def validate_email(self, email: str):
         email = email.strip()
@@ -42,32 +22,19 @@ class RegisterSerializers(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid email format. Please enter a valid email address.")
         return email
     
-
-    def validate_phone_number(self, value):
-        if len(value) != 13:
-            raise serializers.ValidationError("Invalid phone number format. Please enter a valid phone number.")
-        return value
     
-
     def create(self, validated_data):
-        validated_data.pop('confirm_password')  
         user = UserModel.objects.create_user(**validated_data)  
-        user.is_active = False 
-        user.set_password(validated_data['password'])
+        user.user_status = 'inactive' 
         user.save()
         return user 
     
+
     def generate_verification_code(self):
         self.verification_code = str(random.randint(1000, 9999))  
         self.verification_code_created_at = timezone.now()  
         self.save()
         return self.verification_code  
-    
-    
-class LoginSerializers(serializers.Serializer):
-    username = serializers.CharField(max_length=255)
-    email = serializers.EmailField(max_length=255, required=False)
-    password = serializers.CharField(max_length=255, write_only=True)
 
 
 class VerifyEmailSerializer(serializers.Serializer):
