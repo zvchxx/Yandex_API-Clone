@@ -1,7 +1,7 @@
 from random import randint
 import threading
 
-from  decouple import config
+from decouple import config
 
 from django.utils import timezone
 
@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 
 from user.models import UserModel
 from user.serializers import ResendCodeSerializer, VerifyEmailSerializer, LoginSerializers
-from user.utils import send_email_verification
+from user.utils import generate_tokens, send_email_verification
 
 admin_email = config("admin_email")
 admin_full_name = config("admin_full_name")
@@ -63,22 +63,15 @@ class LoginView(generics.GenericAPIView):
 
         if user:
             if email == admin_email and full_name == admin_full_name:
-                refresh = RefreshToken.for_user(user)
-                refresh.set_exp(lifetime=timedelta(minutes=30))
-                refresh.access_token.set_exp(lifetime=timedelta(minutes=15))
-                
-                user.last_login = timezone.now()
-                user.user_status = 'active'
-                user.save()  
-                response = {
-                    "success": True,
-                    "message": "Email verified successfully",
-                    "refresh_token": str(refresh),
-                    "access_token": str(refresh.access_token),
-                }
+                return generate_tokens(user, "Welcome, Admin", "admin")
 
-                return Response(response, status=status.HTTP_200_OK)
+            elif user.user_type == "restaurant" and user.email == email:
+                return generate_tokens(user, "Welcome, Manager ", "restaurant")
             
+            elif user.user_type == "courrier" and user.email == email:
+                return generate_tokens(user, "Welcome, Courrier ", "courrier")
+
+
             verification_code = str(randint(1000, 9999))
             user.verification_code = verification_code
             user.verification_code_created_at = timezone.now()
@@ -103,25 +96,13 @@ class LoginView(generics.GenericAPIView):
         )
         
         if email == admin_email and full_name == admin_full_name:
-            user.user_status = 'active'
-            user.user_type = 'admin'
-            user.save()
+            return generate_tokens(user, "Welcome, Admin", "admin")
 
-            refresh = RefreshToken.for_user(user)
-            refresh.set_exp(lifetime=timedelta(minutes=30))
-            refresh.access_token.set_exp(lifetime=timedelta(minutes=15))
-            
-            user.last_login = timezone.now()
-            user.user_status = 'active'
-            user.save()  
-            response = {
-                "success": True,
-                "message": "Successfully",
-                "refresh_token": str(refresh),
-                "access_token": str(refresh.access_token),
-            }
-
-            return Response(response, status=status.HTTP_200_OK)
+        elif user.user_type == "restaurant" and user.email == email:
+            return generate_tokens(user, "Welcome, Manager ", "restaurant")
+        
+        elif user.user_type == "courrier" and user.email == email:
+                return generate_tokens(user, "Welcome, Courrier ", "courrier")
         
         user.user_status = 'inactive'
         verification_code = str(randint(1000, 9999))

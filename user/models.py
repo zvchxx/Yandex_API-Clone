@@ -8,6 +8,7 @@ class UserModel(AbstractUser):
         ('customer', 'Customer'),
         ('restaurant', 'Restaurant'),
         ('admin', 'Admin'),
+        ('courrier', 'courrier'),
         ('branch', 'Branch'),   
     )
 
