@@ -5,10 +5,10 @@ from rest_framework.routers import DefaultRouter
 from admin import views
 
 router = DefaultRouter()
-router.register(r'restaurants', views.ManagerViewSet)
-router.register(r'products', views.CourierViewSet)
+router.register(r'managaer', views.ManagerViewSet, basename='manager')
+router.register(r'courtier', views.CourierViewSet, basename='courier')
 
 
 urlpatterns = [
-    path('/', include(router.urls)),
+    path('', include(router.urls)),
 ]
