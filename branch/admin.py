@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from branch import models
+
+admin.site.register(models.BranchModel)
