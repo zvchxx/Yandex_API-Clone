@@ -10,15 +10,11 @@ User = get_user_model()
 class BranchModel(models.Model):
     name = models.CharField(max_length=64, verbose_name=("Name"), unique=True)
     address = models.CharField(max_length=255, verbose_name=("Address"))
-    phone_number = models.CharField(max_length=255, verbose_name=("Phone Number"))
-    longitude = models.FloatField()
-    latitude = models.FloatField()
     manager = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name="branches",
-        verbose_name=("Manager")
+        limit_choices_to={'user_type': 'restaurant'}
     )
     restaurant = models.ForeignKey(
         RestaurantModel,
@@ -26,6 +22,7 @@ class BranchModel(models.Model):
         related_name="branches",
         verbose_name=("Restaurant")
     )
+    
     is_active = models.BooleanField(default=True, verbose_name=("Is Active"))
 
     created_at = models.DateTimeField(auto_now_add=True)
